@@ -14,6 +14,7 @@
 ; Notes .............:
 ; Available Functions:
 ;		_Common_Log
+;		_Common_SendLog
 ;		_Common_RaiseError
 ;		_Common_ReadConfig
 ; ===============================================================================================================================
@@ -114,6 +115,41 @@ Func _Common_Log($sLevel,$sMessage)
 EndFunc   ;==>_Common_Log
 
 ; #FUNCTION# ====================================================================================================================
+; Name...........: _Common_SplashLog
+; Description....: Send the logfile to splashText (see AutoIt Function) if $fDebugLevel set.
+; Syntax.........: _Common_SplashLog ()
+; Parameters.....: None required. Require a config file
+; Return values..: Nothing
+; Author.........: onemoretime
+; Modified.......:
+; Remarks........: maybe discard in future
+; Related........:
+; Link...........:
+; Todo...........:
+; Example........: No
+; ===============================================================================================================================
+Func _Common_SplashLog()
+EndFunc
+
+; #FUNCTION# ====================================================================================================================
+; Name...........: _Common_SendLog
+; Description....: Send the logfile to an email address
+; Syntax.........: _Common_SendLog ()
+; Parameters.....: None required. Require a config file
+; Return values..: Nothing
+; Author.........: onemoretime
+; Modified.......:
+; Remarks........: None
+; Related........:
+; Link...........:
+; Todo...........:
+; Example........: Yes
+; ===============================================================================================================================
+Func _Common_SendLog()
+EndFunc
+
+
+; #FUNCTION# ====================================================================================================================
 ; Name...........: _Common_RaiseError
 ; Description....: Set a used defined error
 ; Syntax.........: _Common_RaiseError ( $sLevel, $sMessage )
@@ -136,12 +172,29 @@ EndFunc   ;==>_Common_Log
 ; ===============================================================================================================================
 
 Func _Common_RaiseError($sLevel,$sMessage)
+	Local $iCriticalAnswer
 	Select
 		Case StringLower($sLevel) = "debug"
+			_Common_Log($sLevel, $sMessage)
 		Case StringLower($sLevel) = "info"
+			_Common_Log($sLevel, $sMessage)
 		Case StringLower($sLevel) = "warning"
+			_Common_Log($sLevel, $sMessage)
 		Case StringLower($sLevel) = "critical"
+			_Common_Log($sLevel, $sMessage)
+			; The user must choose to continue or not
+			$iCriticalAnswer = MsgBox(36, "Continue ?", "The application encounter a critical problem" & @CRLF & _
+									 "Do you want to continue and ignore the problem ?")
+			If $iCriticalAnswer = 6 Then		; The answer is "Yes"
+				_Common_RaiseError("Info","Continue on user choice. See previous critical error")
+			ElseIf $iCriticalAnswer = 7 Then	; The answer is "No"
+				_Common_RaiseError("Fatal","Halted on user choice. See previous critical error")
+			EndIf
+
 		Case StringLower($sLevel) = "fatal"
+			_Common_Log($sLevel, $sMessage)
+			MsgBox(0,"Fatal Error !",$sMessage & @CRLF & "The script will be stopped.")
+			Exit -1
 		Case Else
 			; set the $sLevel at a warning level
 			; add a error message for the unkown level set
@@ -153,9 +206,6 @@ Func _Common_RaiseError($sLevel,$sMessage)
 			_Common_Log($sLevel,"End of unknown error.")
 	EndSelect
 
-	If (@error)  Then
-		Return SetError(1, 0, 0)
-	EndIf
 	Return 1
 EndFunc   ;==>_Common_RaiseError
 
